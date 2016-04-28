@@ -75,6 +75,8 @@ void xil_printf(const char *ctrl1, ...);
 /************************ Variables Definitions *******************************/
 /******************************************************************************/
 
+void *tx_dma_uio_addr;
+uint32_t length;
 
 adf4350_init_param default_adf4350_init_param = {
 	25000000,		// clkin;
@@ -194,6 +196,33 @@ int32_t init_ad9467(void)
     return 0;
 }
 
+int32_t init_dac_dma_write(void)
+{
+	dac_dma_write(AXI_DMAC_REG_CTRL, 0);
+	dac_dma_write(AXI_DMAC_REG_CTRL, AXI_DMAC_CTRL_ENABLE);
+    dac_dma_write(AXI_DMAC_REG_SRC_ADDRESS, XPAR_PS7_DDR_0_S_AXI_BASEADDR + 0x800000);
+    dac_dma_write(AXI_DMAC_REG_SRC_STRIDE, 0x0);
+    dac_dma_write(AXI_DMAC_REG_X_LENGTH, length - 1);
+    dac_dma_write(AXI_DMAC_REG_Y_LENGTH, 0x0);
+    dac_dma_write(AXI_DMAC_REG_FLAGS, 0x2);
+    dac_dma_write(AXI_DMAC_REG_START_TRANSFER, 0x1);
+
+    xil_printf("\n\r*****WORKS*******\r\n");
+	return 0;
+
+}
+
+
+/***************************************************************************//**
+ * @brief dac_dma_write
+*******************************************************************************/
+void dac_dma_write(uint32_t regAddr, uint32_t data)
+{
+
+	Xil_Out32(XPAR_AXI_AD9739A_DMA_BASEADDR + regAddr, data);
+}
+
+
 /***************************************************************************//**
  * @brief Main function.
  *
@@ -201,6 +230,7 @@ int32_t init_ad9467(void)
 *******************************************************************************/
 int main(){
 
+	init_dac_dma_write();
 	init_ad9467();
 	init_ad9739a();
 }
